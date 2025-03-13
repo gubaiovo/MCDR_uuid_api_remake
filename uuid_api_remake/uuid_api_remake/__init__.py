@@ -96,7 +96,7 @@ def get_name(uuid: str) -> str:
 
 
 
-
+# by AnzhiZhang: https://github.com/AnzhiZhang/MCDReforgedPlugins/tree/master/src/uuid_api
 class Config(Serializable):
     online_mode: Union[bool, None] = None
 
