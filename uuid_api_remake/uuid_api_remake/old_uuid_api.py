@@ -1,4 +1,4 @@
-# by AnzhiZhang
+# by AnzhiZhang: https://github.com/AnzhiZhang/MCDReforgedPlugins/tree/master/src/uuid_api
 # -*- coding: utf-8 -*-
 import requests
 
