@@ -87,12 +87,12 @@ def list_uuid_in_console(source: CommandSource):
 
 def get_uuid(name: str) -> str:
     data = DataManager(online_mode)
-    return data.get_uuid(name)
+    return data.get_uuid(name)[0]
 
 
 def get_name(uuid: str) -> str:
     data = DataManager(online_mode)
-    return data.get_name(uuid)
+    return data.get_name(uuid)[0]
 
 
 
