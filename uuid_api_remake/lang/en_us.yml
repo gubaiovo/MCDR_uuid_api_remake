@@ -1,0 +1,44 @@
+uuid_api_remake:
+
+  help_message: |
+    ------------------------
+    §3Author gubai
+    If you encounter an error, please submit an issue on github
+    https://github.com/gubaiovo/MCDR_uuid_api_remake
+    
+    §a[UAR]§r Commands
+    §6!!uar help§r View help message
+    §6!!uar list§r View uuid.json player list
+    §6!!uar <name>§r Get uuid of player
+    §6!!uar del <name>§r Delete player's uuid from uuid.json
+    §6!!uar change uuid <name> <new_uuid>§r Change player's uuid in uuid.json
+    §6!!uar change name <uuid> <new_name>§r Change player's name in uuid.json
+    ------------------------
+    §a[UAR]§r Command usage
+    §6!!uar <name>§r Sequentially retrieves the UUID from uuid.json(plugin data file)/usercache.json(bukkit user cache file)
+      /uuid_api(Mojang API), and returns it. If none are found, it generates a UUID (creating a key-value pair in uuid.json).
+    §6!!uar del <name>§r Deletes the specified UUID from uuid.json.
+    §6!!uar change uuid <name> <new_uuid>§r Changes the UUID of the specified player in uuid.json.
+    §6!!uar change name <uuid> <new_name>§r Changes the name of the player associated with the specified UUID in uuid.json.
+
+  now_online_status: §aThe server online mode is 
+  use_setting_status: §aUsing manually set online mode 
+  find_config: §aFinding configuration item 
+  delete_uuid: §aDeleting key-value pair 
+  change_uuid: §aChanging player UUID 
+  change_name: §aChanging player name 
+
+  list_uuid:
+    header: §a§l[UAR] §r§6List of players in uuid.json§r
+    empty: §c§l[UAR] §r§6No player data in uuid.json§r
+
+  error:
+    no_server_properties: §cServer properties file not found, using default configuration True
+    invalid_server_properties: §cInvalid server properties, using default configuration True
+    not_console: §cThis command can only be used in the console
+    no_name_for_uuid: §cNo player name found for this UUID
+    Json_error: §cFailed to parse JSON file, please check if the format is correct
+    Json_empty: §cJSON file is empty
+    no_uuid: §cUUID does not exist
+    no_name: §cPlayer name does not exist
+

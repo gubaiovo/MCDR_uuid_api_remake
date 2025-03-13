@@ -1,0 +1,12 @@
+{
+  "id": "uuid_api_remake",
+  "version": "1.0.0",
+  "name": "UUID API Remake",
+  "description": {
+    "en_us": "Get UUID of players",
+    "zh_cn": "获取玩家的UUID"
+  },
+  "author": "gubai",
+  "link": "https://github.com/gubaiovo/MCDR_uuid_api_remake"
+}
+  
