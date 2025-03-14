@@ -26,9 +26,12 @@ This plugin utilizes all code from the original API for obtaining UUIDs in **pre
     "offline_api": "http://tools.glowingmines.eu/convertor/nick/"
 }
 ```
-**mojang_online_mode**: Whether to use official Mojang API for UUID lookup, defaults to true  
-**online_api**: Official API URL, defaults to `https://api.mojang.com/users/profiles/minecraft/`  
-**use_offline_api**: Whether to use offline API for UUID lookup, defaults to true  
+**mojang_online_mode**: Indicates whether the server is an official (authenticated) server. When set to true, it uses the official Mojang API to obtain UUIDs
+
+**online_api**: The endpoint URL for the official authentication API. Defaults to `https://api.mojang.com/users/profiles/minecraft/`  
+
+**use_offline_api**: Determines whether to use offline API for UUID retrieval. This setting becomes active only when mojang_online_mode is set to false. Defaults to true
+
 **offline_api**: Offline API URL, defaults to `http://tools.glowingmines.eu/convertor/nick/`  
 
 **Note**: Ensure these four configuration items remain complete in the file. If using custom APIs, please remember to include the trailing `/`

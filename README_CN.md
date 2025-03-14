@@ -26,11 +26,17 @@
     "offline_api": "http://tools.glowingmines.eu/convertor/nick/"
 }
 ```
-**mojang_online_mode**: 是否使用正版api获取uuid，默认为true
+
+**mojang_online_mode**: 服务器是否为正版服务器，若为true则使用正版api获取uuid
+
 **online_api**: 正版api地址，默认为 `https://api.mojang.com/users/profiles/minecraft/`
-**use_offline_api**: 是否使用离线api获取uuid，默认为true
+
+**use_offline_api**: 是否使用离线api获取uuid，默认为true。当mojang_online_mode为false时，该项生效。
+
 **offline_api**: 离线api地址，默认为 `http://tools.glowingmines.eu/convertor/nick/`
+
 **注**：请保证配置文件中该四项完整。如果使用了自定义api，请注意不要忘记最后的 `/`
+
 ### 命令
 
 除了 `!!uar` `!!uar help` ，其他命令只能在控制台使用
