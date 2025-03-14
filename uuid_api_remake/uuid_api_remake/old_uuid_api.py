@@ -1,10 +1,10 @@
-# by AnzhiZhang: https://github.com/AnzhiZhang/MCDReforgedPlugins/tree/master/src/uuid_api
+# Adapted from code by AnzhiZhang: https://github.com/AnzhiZhang/MCDReforgedPlugins/tree/master/src/uuid_api
 # -*- coding: utf-8 -*-
 import requests
 
 
-def online_uuid(name):
-    url = f'https://api.mojang.com/users/profiles/minecraft/{name}'
+def online_uuid(name, online_api):
+    url = f'{online_api}{name}'
     r = get_try(url)
     if r is None:
         return None
@@ -12,8 +12,8 @@ def online_uuid(name):
         return r['id']
 
 
-def offline_uuid(name):
-    url = f'http://tools.glowingmines.eu/convertor/nick/{name}'
+def offline_uuid(name, offline_api):
+    url = f'{offline_api}{name}'
     r = get_try(url)
     if r is None:
         return None
@@ -30,9 +30,12 @@ def get_try(url):
     return None
 
 
-def get_uuid(name: str, online_mode: bool): 
-    if online_mode:
-        uuid = online_uuid(name)
+def get_uuid(name: str, mojang_online_mode: bool, online_api: str, offline_api: str, use_offline_api: bool): 
+    if mojang_online_mode:
+        uuid = online_uuid(name, online_api)
     else:
-        uuid = offline_uuid(name)
+        if use_offline_api:
+            uuid = offline_uuid(name, offline_api)
+        else:
+            return None
     return uuid

@@ -41,3 +41,4 @@ uuid_api_remake:
     Json_empty: §cJson文件为空
     no_uuid: §cuuid不存在
     no_name: §c玩家名不存在
+    load_config_error: §c加载配置失败，请检查配置项是否正确，并重新加载插件

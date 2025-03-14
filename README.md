@@ -18,13 +18,20 @@ This plugin utilizes all code from the original API for obtaining UUIDs in **pre
 
 ### Configuration
 
-Refer to the original work.
+```json
+{
+    "mojang_online_mode": true,
+    "online_api": "https://api.mojang.com/users/profiles/minecraft/",
+    "use_offline_api": true,
+    "offline_api": "http://tools.glowingmines.eu/convertor/nick/"
+}
+```
+**mojang_online_mode**: Whether to use official Mojang API for UUID lookup, defaults to true  
+**online_api**: Official API URL, defaults to `https://api.mojang.com/users/profiles/minecraft/`  
+**use_offline_api**: Whether to use offline API for UUID lookup, defaults to true  
+**offline_api**: Offline API URL, defaults to `http://tools.glowingmines.eu/convertor/nick/`  
 
-**Note:** If your server has hybrid players (e.g., from skin stations, between premium and offline modes) or Bedrock Edition players, **no configuration changes are needed**. These players will use hashed pseudo-UUIDs.
-
-> You do not need to worry about server authentication mode. The plugin auto-detects it.
->If using **BungeeCord** with premium verification enabled, or if actual UUIDs conflict with `online-mode` in `server.properties`,
-> set the plugin's `manual_mode` to a boolean value to override the `server.properties` online mode.
+**Note**: Ensure these four configuration items remain complete in the file. If using custom APIs, please remember to include the trailing `/`
 
 ### Commands
 

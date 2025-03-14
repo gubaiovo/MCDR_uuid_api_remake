@@ -28,7 +28,7 @@ def get_help(source: CommandSource):
 def get_uuid_in_console(source: CommandSource, context: CommandContext):
     if not source.is_console:
         source.reply(tr("error.not_console"))
-    data = DataManager(online_mode)
+    data = getDataManager()
     name = context['name']
     uuid, uuid_source= data.get_uuid(name)
     source.reply(f'§c{name} -> {uuid}, {uuid_source}')
@@ -36,7 +36,7 @@ def get_uuid_in_console(source: CommandSource, context: CommandContext):
 def delete_uuid_in_console(source: CommandSource, context: CommandContext):
     if not source.is_console:
         source.reply(tr("error.not_console"))
-    data = DataManager(online_mode)
+    data = getDataManager()
     name = context['name']
     uuid = data.delete_uuid(name)
     if uuid is None:
@@ -48,7 +48,7 @@ def delete_uuid_in_console(source: CommandSource, context: CommandContext):
 def change_uuid_in_console(source: CommandSource, context: CommandContext):
     if not source.is_console:
         source.reply(tr("error.not_console"))
-    data = DataManager(online_mode)
+    data = getDataManager()
     name = context['name']
     new_uuid = context['new_uuid']
     old_uuid = data.change_uuid(name, new_uuid)
@@ -61,7 +61,7 @@ def change_uuid_in_console(source: CommandSource, context: CommandContext):
 def change_name_in_console(source: CommandSource, context: CommandContext):
     if not source.is_console:
         source.reply(tr("error.not_console"))
-    data = DataManager(online_mode)
+    data = getDataManager()
     uuid = context['uuid']
     new_name = context['new_name']
     old_name = data.change_name(uuid, new_name)
@@ -73,7 +73,7 @@ def change_name_in_console(source: CommandSource, context: CommandContext):
 def list_uuid_in_console(source: CommandSource):
     if not source.is_console:
         source.reply(tr("error.not_console"))
-    data = DataManager(online_mode)
+    data = getDataManager()
     uuid_list = data.list_uuid()
     if uuid_list is None:
         source.reply(tr("error.Json_empty"))
@@ -87,60 +87,50 @@ def list_uuid_in_console(source: CommandSource):
             
 
 def get_uuid(name: str) -> str:
-    data = DataManager(online_mode)
+    data = getDataManager()
     return data.get_uuid(name)[0]
 
 
 def get_name(uuid: str) -> str:
-    data = DataManager(online_mode)
+    data = getDataManager()
     return data.get_name(uuid)[0]
 
+def test_api() -> bool:
+    data = getDataManager()
+    return data.test()
 
-
-# by AnzhiZhang: https://github.com/AnzhiZhang/MCDReforgedPlugins/tree/master/src/uuid_api
+# Adapted from code by AnzhiZhang: https://github.com/AnzhiZhang/MCDReforgedPlugins/tree/master/src/uuid_api
 class Config(Serializable):
-    online_mode: Union[bool, None] = None
+    mojang_online_mode: bool = True
+    online_api: str = 'https://api.mojang.com/users/profiles/minecraft/'
+    use_offline_api: bool = True
+    offline_api: str = 'http://tools.glowingmines.eu/convertor/nick/'
 
 properties_path = os.path.join('server', 'server.properties')
-online_mode = True
+mojang_online_mode = True
+online_api = 'https://api.mojang.com/users/profiles/minecraft/'
+use_offline_api = True
+offline_api = 'http://tools.glowingmines.eu/convertor/nick/'
 config: Config
 
 def on_load(server: PluginServerInterface, old):
     command_register(server)
-    global config, online_mode
+    global config, mojang_online_mode, online_api, use_offline_api, offline_api
     config = server.load_config_simple(
         'config.json',
         target_class=Config
     )
-    online_mode = get_online_mode(server)
-    server.logger.debug(tr('now_online_status'), online_mode)
+    try:
+        mojang_online_mode, online_api, use_offline_api, offline_api = get_config()
+    except Exception as e:
+        server.logger.error(tr('error.load_config_error'), e)
+    server.logger.debug(tr('now_online_status'), mojang_online_mode)
 
-def get_online_mode(server):
+def get_config():
     global config
-    # 手动设置覆盖
-    server.logger.info(config.online_mode)
-    if config.online_mode is not None and isinstance(config.online_mode, bool):
-        server.logger.info(tr('use_setting_status'), config.online_mode)
-        return config.online_mode
+    return config.mojang_online_mode, config.online_api, config.use_offline_api, config.offline_api
 
-    # 读取服务器配置
-    if not os.path.isfile(properties_path):
-        server.logger.error(tr('error.no_server_properties'))
-        return True
-    else:
-        with open(properties_path) as f:
-            for i in f.readlines():
-                if 'online-mode' in i:
-                    server.logger.debug(tr('find_config'), i)
-                    server_properties_config = i.split('=')[1].replace('\n', '')
-                    break
-        if server_properties_config == 'true':
-            return True
-        elif server_properties_config == 'false':
-            return False
-        else:
-            server.logger.error(tr('error.invalid_server_properties'))
-            return True
-
-        
+def getDataManager():
+    global mojang_online_mode, online_api, use_offline_api, offline_api
+    return DataManager(mojang_online_mode, online_api, use_offline_api, offline_api)
 

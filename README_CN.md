@@ -18,16 +18,19 @@
 
 ### 配置文件
 
-参考原作
-
-**注：如果服务器中有皮肤站这类介于正版与离线之间的玩家，或基岩版玩家，无需修改配置文件，对于这些玩家将使用哈希值作为伪uuid**
-
-> 你不需要考虑服务器正盗版问题, 会自己判断
->
-> 如果使用了 `BungeeCord` 并开启了正版验证, 或实际的UUID与 `server.properties` 中的 `online-mode` 并不匹配
->
-> 将插件的 `manual_mode` 手动模式设置为一个布尔值即可覆盖 `server.properties` 的在线模式
-
+```json
+{
+    "mojang_online_mode": true,
+    "online_api": "https://api.mojang.com/users/profiles/minecraft/",
+    "use_offline_api": true,
+    "offline_api": "http://tools.glowingmines.eu/convertor/nick/"
+}
+```
+**mojang_online_mode**: 是否使用正版api获取uuid，默认为true
+**online_api**: 正版api地址，默认为 `https://api.mojang.com/users/profiles/minecraft/`
+**use_offline_api**: 是否使用离线api获取uuid，默认为true
+**offline_api**: 离线api地址，默认为 `http://tools.glowingmines.eu/convertor/nick/`
+**注**：请保证配置文件中该四项完整。如果使用了自定义api，请注意不要忘记最后的 `/`
 ### 命令
 
 除了 `!!uar` `!!uar help` ，其他命令只能在控制台使用

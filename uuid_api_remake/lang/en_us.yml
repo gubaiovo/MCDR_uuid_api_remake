@@ -41,4 +41,5 @@ uuid_api_remake:
     Json_empty: §cJSON file is empty
     no_uuid: §cUUID does not exist
     no_name: §cPlayer name does not exist
+    load_config_error: §cFailed to load configuration file, please check if it is correct, and reload the plugin
 

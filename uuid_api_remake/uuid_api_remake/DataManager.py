@@ -19,8 +19,13 @@ def hash_name_with_timestamp(name: str) -> str:
     return hash_hex[:60]
 source = None
 class DataManager:
-    def __init__(self, online_mode: bool):
-        self.online_mode = online_mode
+    def __init__(self, mojang_online_mode: bool,online_api: str, using_offline_api: bool, offline_api: str):
+
+        self.mojang_online_mode = mojang_online_mode
+        self.online_api = online_api
+        self.using_offline_api = using_offline_api
+        self.offline_api = offline_api
+
         self.uuid_path = './config/uuid_api_remake/uuid.json'
         if not os.path.exists(self.uuid_path):
             with open(self.uuid_path, 'w') as file:
@@ -40,14 +45,22 @@ class DataManager:
                 # 若uuid不存在，则尝试从usercache.json获取
                 uuid = get_uuid_from_usercache(name)
                 if uuid is None:
-                    # 若usercache.json也不存在，则尝试从mojang获取uuid
+                    # 若usercache.json也不存在，则尝试从api获取uuid
                     try:
-                        uuid = get_uuid_from_api(name, online_mode=self.online_mode)
-                        source = 'mojang'
+                        uuid = get_uuid_from_api(
+                            name=name,
+                            mojang_online_mode=self.mojang_online_mode,
+                            online_api=self.online_api,
+                            use_offline_api=self.using_offline_api,
+                            offline_api=self.offline_api
+                            )
                     except Exception as e:
-                        # 若获取失败，则生成uuid
+                        pass
+                    if uuid is None:
                         uuid = hash_name_with_timestamp(name)
                         source = 'generated'
+                    else:
+                        source = 'api'
                 else:
                     source = 'usercache.json'
 
@@ -169,5 +182,39 @@ class DataManager:
         for key in keys_to_remove:
             uuid_data.pop(key)
         return uuid_data
+    
+    def test(self):
+        test_name = 'test_name'
+        test_uuid = 'test_uuid'
+        # 测试get_uuid
+        test_get_uuid_from_uuid_json = None
+        test_get_uuid_from_usercache = None
+        test_get_uuid_from_api = None
+        test_get_uuid_from_generated = None
+        if self.checkJson(self.uuid_path):
+            with open(self.uuid_path, 'r') as file:
+                uuid_data = json.load(file)
+            test_get_uuid_from_uuid_json = uuid_data.get(test_name)
+            test_get_uuid_from_usercache = get_uuid_from_usercache(test_name)
+            test_get_uuid_from_api = get_uuid_from_api(
+                                name=test_name,
+                                mojang_online_mode=self.mojang_online_mode,
+                                online_api=self.online_api,
+                                use_offline_api=self.using_offline_api,
+                                offline_api=self.offline_api
+                                )
+            test_get_uuid_from_generated = hash_name_with_timestamp(test_name)
+        print('test_get_uuid_from_uuid_json:', test_get_uuid_from_uuid_json)
+        print('test_get_uuid_from_usercache:', test_get_uuid_from_usercache)
+        print('test_get_uuid_from_api:', test_get_uuid_from_api)
+        print('test_get_uuid_from_generated:', test_get_uuid_from_generated)
+        # 测试get_name
+        test_get_name = None
+        if self.checkJson(self.uuid_path):
+            with open(self.uuid_path, 'r') as file:
+                uuid_data = json.load(file)
+            test_get_name = self.get_name(test_uuid)
+        print('test_get_name:', test_get_name)        
+        
     
 
