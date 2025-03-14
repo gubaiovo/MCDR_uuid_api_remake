@@ -51,6 +51,7 @@ class DataManager:
                 else:
                     source = 'usercache.json'
 
+                uuid_data = self.remove_same_uuid(uuid, name, uuid_data)
                 uuid_data[name] = uuid
                 with open(self.uuid_path, 'w') as file:
                     json.dump(uuid_data, file, indent=4)
@@ -128,6 +129,8 @@ class DataManager:
                         with open(self.uuid_path, 'w') as file:
                             json.dump(uuid_data, file, indent=4)
                         return key
+                    else:
+                        return None
             return None
 
     def checkJson(self, path: str) -> bool:
@@ -157,5 +160,14 @@ class DataManager:
                 return result_list
         return None
 
+            
+    def remove_same_uuid(self, uuid: str, new_name: str, uuid_data):
+        keys_to_remove = []
+        for key, value in uuid_data.items():
+            if value == uuid and key != new_name:
+                keys_to_remove.append(key)
+        for key in keys_to_remove:
+            uuid_data.pop(key)
+        return uuid_data
     
 

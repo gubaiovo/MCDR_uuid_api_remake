@@ -28,8 +28,9 @@ def get_help(source: CommandSource):
 def get_uuid_in_console(source: CommandSource, context: CommandContext):
     if not source.is_console:
         source.reply(tr("error.not_console"))
+    data = DataManager(online_mode)
     name = context['name']
-    uuid, uuid_source= get_uuid(name)
+    uuid, uuid_source= data.get_uuid(name)
     source.reply(f'§c{name} -> {uuid}, {uuid_source}')
 
 def delete_uuid_in_console(source: CommandSource, context: CommandContext):
