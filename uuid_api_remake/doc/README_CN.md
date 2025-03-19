@@ -1,4 +1,4 @@
-# MCDR_uuid_api_remake
+# UUID API REMAKE
 本插件为UUID API重制版，[原作UUID API链接：https://github.com/AnzhiZhang/MCDReforgedPlugins/tree/master/src/uuid_api](https://github.com/AnzhiZhang/MCDReforgedPlugins/tree/master/src/uuid_api)
 
 本插件使用了原api获取 正版/离线服务器 uuid 的所有代码

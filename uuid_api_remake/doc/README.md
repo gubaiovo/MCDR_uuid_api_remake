@@ -1,4 +1,4 @@
-# MCDR_uuid_api_remake
+# UUID API REMAKE
 This plugin is a remade version of the UUID API. [Original UUID API link: https://github.com/AnzhiZhang/MCDReforgedPlugins/tree/master/src/uuid_api](https://github.com/AnzhiZhang/MCDReforgedPlugins/tree/master/src/uuid_api)
 
 This plugin utilizes all code from the original API for obtaining UUIDs in **premium/offline** servers.
