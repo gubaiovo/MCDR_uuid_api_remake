@@ -60,7 +60,7 @@ def _save_to_offline_cache(name: str, new_uuid: str):
         except (json.JSONDecodeError, IOError) as e:
             print(f"Error saving to offline cache: {e}")
             
-def generate_offline_uuid(username: str) -> str:
+def _generate_offline_uuid(username: str) -> str:
     name = "OfflinePlayer:" + username
     
     md5 = hashlib.md5(name.encode("utf-8")).digest()
