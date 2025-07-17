@@ -1,136 +1,177 @@
 # -*- coding: utf-8 -*-
 import os
-from typing import Union
+import json
+import requests
+from typing import Optional
+import uuid
+import threading
 from mcdreforged.api.all import *
-from uuid_api_remake.DataManager import DataManager
-
-def tr(key, *args):
-    return ServerInterface.get_instance().tr(f"uuid_api_remake.{key}", *args)
-
-def command_register(server: ServerInterface):
-    builder = SimpleCommandBuilder()
-    builder.command('!!uar', get_help)
-    builder.command('!!uar help', get_help)
-    builder.command('!!uar <name>', get_uuid_in_console)
-    builder.command('!!uar list', list_uuid_in_console)
-    builder.command('!!uar del <name>', delete_uuid_in_console)
-    builder.command('!!uar change uuid <name> <new_uuid>', change_uuid_in_console)
-    builder.command('!!uar change name <uuid> <new_name>', change_name_in_console)
-    builder.arg('name', Text)
-    builder.arg('uuid', Text)
-    builder.arg('new_uuid', Text)
-    builder.arg('new_name', Text)
-    builder.register(server)
-
-def get_help(source: CommandSource):
-    source.reply(tr("help_message"))
-
-def get_uuid_in_console(source: CommandSource, context: CommandContext):
-    if not source.is_console:
-        source.reply(tr("error.not_console"))
-    data = getDataManager()
-    name = context['name']
-    uuid, uuid_source= data.get_uuid(name)
-    source.reply(f'§c{name} -> {uuid}, {uuid_source}')
-
-def delete_uuid_in_console(source: CommandSource, context: CommandContext):
-    if not source.is_console:
-        source.reply(tr("error.not_console"))
-    data = getDataManager()
-    name = context['name']
-    uuid = data.delete_uuid(name)
-    if uuid is None:
-        source.reply(tr("error.no_name"))
-    else:
-        source.reply(f'{tr('delete_uuid')} §c{name} -> {uuid}')
-    
-    
-def change_uuid_in_console(source: CommandSource, context: CommandContext):
-    if not source.is_console:
-        source.reply(tr("error.not_console"))
-    data = getDataManager()
-    name = context['name']
-    new_uuid = context['new_uuid']
-    old_uuid = data.change_uuid(name, new_uuid)
-    if old_uuid is None:
-        source.reply(tr("error.no_name"))
-    else:
-        source.reply(f'{tr("change_uuid")} §c{name}: {old_uuid} -> {new_uuid}')
-    
-
-def change_name_in_console(source: CommandSource, context: CommandContext):
-    if not source.is_console:
-        source.reply(tr("error.not_console"))
-    data = getDataManager()
-    uuid = context['uuid']
-    new_name = context['new_name']
-    old_name = data.change_name(uuid, new_name)
-    if old_name is None:
-        source.reply(tr("error.no_uuid"))
-    else:
-        source.reply(f'{tr("change_name")} §c{uuid}: {old_name} -> {new_name}')
-    
-def list_uuid_in_console(source: CommandSource):
-    if not source.is_console:
-        source.reply(tr("error.not_console"))
-    data = getDataManager()
-    uuid_list = data.list_uuid()
-    if uuid_list is None:
-        source.reply(tr("error.Json_empty"))
-    else:
-        if len(uuid_list) == 0:
-            source.reply(tr("list_uuid.empty"))
-        else:
-            source.reply(tr("list_uuid.header"))
-            for entry in uuid_list:
-                source.reply(f'§c{entry["name"]} -> {entry["uuid"]}')
-            
-
-def get_uuid(name: str) -> str:
-    data = getDataManager()
-    return data.get_uuid(name)[0]
+import hashlib
 
 
-def get_name(uuid: str) -> str:
-    data = getDataManager()
-    return data.get_name(uuid)[0]
 
-def test_api() -> bool:
-    data = getDataManager()
-    return data.test()
-
-# Adapted from code by AnzhiZhang: https://github.com/AnzhiZhang/MCDReforgedPlugins/tree/master/src/uuid_api
 class Config(Serializable):
-    mojang_online_mode: bool = True
-    online_api: str = 'https://api.mojang.com/users/profiles/minecraft/'
-    use_offline_api: bool = True
-    offline_api: str = 'http://tools.glowingmines.eu/convertor/nick/'
+    online_api: str = 'https://api.mojang.com/users/profiles/minecraft/{}'
+    mojang_online_mode_fallback: bool = True
 
-properties_path = os.path.join('server', 'server.properties')
-mojang_online_mode = True
-online_api = 'https://api.mojang.com/users/profiles/minecraft/'
-use_offline_api = True
-offline_api = 'http://tools.glowingmines.eu/convertor/nick/'
 config: Config
+is_online_mode: bool = True 
+offline_uuid_path: str 
+offline_uuid_lock = threading.Lock()
+
+def _read_usercache(identifier: str, find_key: str, return_key: str) -> Optional[str]:
+    usercache_path = os.path.join('server', 'usercache.json')
+    if not os.path.exists(usercache_path):
+        return None
+    try:
+        with open(usercache_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        for entry in data:
+            if entry.get(find_key) == identifier:
+                return entry.get(return_key)
+    except (json.JSONDecodeError, IOError):
+        return None
+    return None
+
+def _get_from_offline_cache(name: str) -> Optional[str]:
+    global offline_uuid_path
+    with offline_uuid_lock:
+        try:
+            if not os.path.exists(offline_uuid_path):
+                return None
+            with open(offline_uuid_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return data.get(name)
+        except (json.JSONDecodeError, IOError):
+            return None
+def _save_to_offline_cache(name: str, new_uuid: str):
+    global offline_uuid_path
+    with offline_uuid_lock:
+        try:
+            data = {}
+            if os.path.exists(offline_uuid_path):
+                with open(offline_uuid_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    if content:
+                        data = json.loads(content)
+            data[name] = new_uuid
+            with open(offline_uuid_path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=4)
+        except (json.JSONDecodeError, IOError) as e:
+            print(f"Error saving to offline cache: {e}")
+            
+def generate_offline_uuid(username: str) -> str:
+    name = "OfflinePlayer:" + username
+    
+    md5 = hashlib.md5(name.encode("utf-8")).digest()
+    ba = bytearray(md5)
+    ba[6] = (ba[6] & 0x0f) | 0x30
+    ba[8] = (ba[8] & 0x3f) | 0x80
+    return str(uuid.UUID(bytes=bytes(ba)))
+        
+
+def _get_online_uuid_from_api(name: str) -> Optional[str]:
+    global is_online_mode, config
+    try:
+        url = config.online_api.format(name)
+        print(url)
+        response = requests.get(url, timeout=5)
+        response.raise_for_status() 
+        return str(uuid.UUID(response.json().get('id')))
+    except requests.RequestException:
+        return None
+    except json.JSONDecodeError:
+        return None
+
+
+def get_uuid(name: str) -> Optional[str]:
+    if is_online_mode:
+        # usercache.json 
+        uuid = _read_usercache(name, 'name', 'uuid')
+        if uuid is not None:
+            return uuid
+        # API
+        return _get_online_uuid_from_api(name)
+    else:
+        uuid = _get_from_offline_cache(name)
+        if uuid is not None:
+            return uuid
+        uuid = _generate_offline_uuid(name)
+        _save_to_offline_cache(name, uuid)
+        return uuid
+
+def get_name(uuid: str) -> Optional[str]:
+    global is_online_mode, offline_uuid_path
+    name = _read_usercache(uuid, 'uuid', 'name')
+    if name is not None:
+        return name
+    if not is_online_mode:
+        with offline_uuid_lock:
+            try:
+                if not os.path.exists(offline_uuid_path):
+                    return None
+                with open(offline_uuid_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    for name_entry, uuid_entry in data.items():
+                        if uuid_entry == uuid:
+                            return name_entry
+            except (json.JSONDecodeError, IOError):
+                return None
+    return None
+
+
+def _determine_online_mode(server: PluginServerInterface):
+    global is_online_mode, config
+    properties_path = os.path.join('server', 'server.properties')
+    
+    found_in_properties = False
+    if os.path.exists(properties_path):
+        try:
+            with open(properties_path, 'r', encoding='utf-8') as f:
+                for line in f:
+                    if line.strip().startswith('online-mode='):
+                        value = line.split('=', 1)[1].strip()
+                        is_online_mode = value.lower() == 'true'
+                        server.logger.info(f"从 server.properties 中检测到 online-mode: {is_online_mode}")
+                        found_in_properties = True
+                        break
+        except Exception as e:
+            server.logger.warning(f"读取 server.properties 失败: {e}，将使用插件配置")
+
+    if not found_in_properties:
+        is_online_mode = config.mojang_online_mode_fallback
+        server.logger.info(f"未在 server.properties 中找到 online-mode，使用插件配置: {is_online_mode}")
 
 def on_load(server: PluginServerInterface, old):
-    command_register(server)
-    global config, mojang_online_mode, online_api, use_offline_api, offline_api
-    config = server.load_config_simple(
-        'config.json',
-        target_class=Config
-    )
-    try:
-        mojang_online_mode, online_api, use_offline_api, offline_api = get_config()
-    except Exception as e:
-        server.logger.error(tr('error.load_config_error'), e)
-    server.logger.debug(tr('now_online_status'), mojang_online_mode)
+    global config, offline_uuid_path
+    config = server.load_config_simple('config.json', target_class=Config)
+    offline_uuid_path = server.get_data_folder() + '/offline_uuid.json'
+    if not os.path.exists(offline_uuid_path):
+        with open(offline_uuid_path, 'w') as f:
+            json.dump({}, f)
+    _determine_online_mode(server)
 
-def get_config():
-    global config
-    return config.mojang_online_mode, config.online_api, config.use_offline_api, config.offline_api
+    builder = SimpleCommandBuilder()
+    builder.command('!!uar help', help_message)
+    builder.command('!!uar <name>', get_uuid_in_console)
+    builder.arg('name', Text)
+    builder.register(server)
 
-def getDataManager():
-    global mojang_online_mode, online_api, use_offline_api, offline_api
-    return DataManager(mojang_online_mode, online_api, use_offline_api, offline_api)
-
+def get_uuid_in_console(source: CommandSource, context: dict):
+    if not source.is_console:
+        source.reply("该命令只能在控制台使用。")
+        return
+        
+    name = context['name']
+    source.reply(f"查询 §e{name}§r UUID...")
+    
+    uuid = get_uuid(name)
+    
+    if uuid:
+        source.reply(f"§c{name} §a->§r §b{uuid}")
+    else:
+        source.reply(f"§c查询失败: 无法找到玩家 §e{name}§c 的 UUID。")
+        
+def help_message(source: CommandSource, context: dict):
+    source.reply("!!uar help - 查看帮助信息。")
+    source.reply("!!uar <name> - 查询 Minecraft 玩家的 UUID。")
