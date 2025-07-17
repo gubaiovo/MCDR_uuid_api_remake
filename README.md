@@ -1,50 +1,40 @@
 # UUID API REMAKE
-This plugin is a remade version of the UUID API. [Original UUID API link: https://github.com/AnzhiZhang/MCDReforgedPlugins/tree/master/src/uuid_api](https://github.com/AnzhiZhang/MCDReforgedPlugins/tree/master/src/uuid_api)
+本插件为UUID API重制版，[原作UUID API链接：https://github.com/AnzhiZhang/MCDReforgedPlugins/tree/master/src/uuid_api](https://github.com/AnzhiZhang/MCDReforgedPlugins/tree/master/src/uuid_api)
 
-This plugin utilizes all code from the original API for obtaining UUIDs in **premium/offline** servers.
+### 本插件uuid获取流程 (如果获取失败则执行下一步)：
 
-### Additional Features in the Remake:
+1. 判断服务器正版/离线
+2. 
+    (1). 正版：
+        1. 读取 usercache.json，失败则下一步
+        2. 调用 API
+    (2). 离线
+        1. 读取 offline_uuid.json，失败则下一步
+        2. 本地计算 uuid，保存到 offline_uuid.json
+    
 
-1. Added more commands for easier UUID management.
-2. All obtained UUIDs are stored and centrally managed in the `uuid.json` data file.
-3. Added the `get_name(uuid)` function to retrieve player names from UUIDs (sourced from `uuid.json` and `usercache.json`).
 
-### UUID Retrieval Workflow (proceeds to next step if failed):
-
-1. Read the plugin data file `uuid.json`.
-2. Read `usercache.json`. If successful, store results in `uuid.json`.
-3. Call the original API. If successful, store results in `uuid.json`.
-4. Generate a pseudo-UUID using the SHA-256 hash of `playername + timestamp`, take the first 50 bits, and store it in `uuid.json`.
-
-### Configuration
+### 配置文件
 
 ```json
 {
-    "mojang_online_mode": true,
-    "online_api": "https://api.mojang.com/users/profiles/minecraft/",
-    "use_offline_api": true,
-    "offline_api": "http://tools.glowingmines.eu/convertor/nick/"
+    "mojang_online_mode_fallback": true,
+    "online_api": "https://api.mojang.com/users/profiles/minecraft/{}",
 }
 ```
-**mojang_online_mode**: Indicates whether the server is an official (authenticated) server. When set to true, it uses the official Mojang API to obtain UUIDs
 
-**online_api**: The endpoint URL for the official authentication API. Defaults to `https://api.mojang.com/users/profiles/minecraft/`  
+**mojang_online_mode_fallback**: 当插件无法判断服务器正版/离线时，由该项决定使用正版/离线 uuid 获取方式
+**online_api**: 获取正版 uuid 的 API
 
-**use_offline_api**: Determines whether to use offline API for UUID retrieval. This setting becomes active only when mojang_online_mode is set to false. Defaults to true
+### 命令
 
-**offline_api**: Offline API URL, defaults to `http://tools.glowingmines.eu/convertor/nick/`  
+除了 `!!uar` `!!uar help` ，其他命令只能在控制台使用
 
-**Note**: Ensure these four configuration items remain complete in the file. If using custom APIs, please remember to include the trailing `/`
+具体使用方法请参考  `!!uar` 或 `!!uar help`
 
-### Commands
+### API使用方法
 
-Except for `!!uar` and `!!uar help`, all other commands can only be used in the **console**.
-
-For detailed usage, run `!!uar` or `!!uar help`.
-
-### API Usage
-
-**Obtain UUID from player name:**
+获取玩家名对应的uuid：
 
 ```python
 import uuid_api_remake
@@ -54,7 +44,7 @@ uuid = uuid_api_remake.get_uuid(name)
 print(uuid)
 ```
 
-**Obtain player name from UUID (sourced from `uuid.json` and `usercache.json`):**
+获取uuid对应的玩家名(获取范围为 `uuid.json` `usercache.json`)
 
 ```python
 import uuid_api_remake
