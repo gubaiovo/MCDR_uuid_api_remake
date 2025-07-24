@@ -18,19 +18,22 @@
 
 ```json
 {
-    "mojang_online_mode_fallback": true,
     "online_api": "https://api.mojang.com/users/profiles/minecraft/{}",
+    "mojang_online_mode_fallback": true,
+    "permissions": {
+        "help": 3,
+        "get": 3
+    }
 }
 ```
 
-**mojang_online_mode_fallback**: 当插件无法判断服务器正版/离线时，由该项决定使用正版/离线 uuid 获取方式
-**online_api**: 获取正版 uuid 的 API
+**mojang_online_mode_fallback**: 当插件无法判断服务器正版/离线时，由该项决定使用正版/离线 uuid 获取方式  
+**online_api**: 获取正版 uuid 的 API  
+**permissions**: 权限管理，数值参考 [MCDReforgedPermissions](https://docs.mcdreforged.com/zh-cn/latest/permission.html)  
 
 ### 命令
 
-除了 `!!uar` `!!uar help` ，其他命令只能在控制台使用
-
-具体使用方法请参考  `!!uar` 或 `!!uar help`
+具体使用方法请参考 `!!uar help`
 
 ### API使用方法
 
