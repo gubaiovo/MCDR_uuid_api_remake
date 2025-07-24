@@ -13,7 +13,11 @@ import hashlib
 class Config(Serializable):
     online_api: str = 'https://api.mojang.com/users/profiles/minecraft/{}'
     mojang_online_mode_fallback: bool = True
-
+    permissions: dict = {
+        "help": 3,
+        "get": 3
+    }
+    
 config: Config
 is_online_mode: bool = True 
 offline_uuid_path: str 
@@ -142,6 +146,25 @@ def _determine_online_mode(server: PluginServerInterface):
         is_online_mode = config.mojang_online_mode_fallback
         server.logger.info(f"未在 server.properties 中找到 online-mode，使用插件配置: {is_online_mode}")
 
+def command_register(server: PluginServerInterface):
+    global config
+    builder = SimpleCommandBuilder()
+    require = Requirements()
+    level_dict = config.permissions
+    builder.command('!!uar help', help_message)
+    builder.command('!!uar get <name>', get_uuid_in_game)
+    builder.arg('name', Text)
+    
+    for literal in level_dict:
+        permission = level_dict[literal]
+
+        builder.literal(literal).requires(
+            require.has_permission(permission),
+            failure_message_getter=lambda err, p=permission: "lack_permission"
+        )
+
+    builder.register(server)
+
 def on_load(server: PluginServerInterface, old):
     global config, offline_uuid_path
     config = server.load_config_simple('config.json', target_class=Config)
@@ -151,22 +174,12 @@ def on_load(server: PluginServerInterface, old):
             json.dump({}, f)
     _determine_online_mode(server)
 
-    builder = SimpleCommandBuilder()
-    builder.command('!!uar help', help_message)
-    builder.command('!!uar <name>', get_uuid_in_console)
-    builder.arg('name', Text)
-    builder.register(server)
+    command_register(server)
 
-def get_uuid_in_console(source: CommandSource, context: dict):
-    if not source.is_console:
-        source.reply("该命令只能在控制台使用。")
-        return
-        
+def get_uuid_in_game(source: CommandSource, context: dict):
     name = context['name']
     source.reply(f"查询 §e{name}§r UUID...")
-    
     uuid = get_uuid(name)
-    
     if uuid:
         source.reply(f"§c{name} §a->§r §b{uuid}")
     else:
