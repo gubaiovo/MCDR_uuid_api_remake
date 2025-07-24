@@ -47,7 +47,7 @@ uuid = uuid_api_remake.get_uuid(name)
 print(uuid)
 ```
 
-获取uuid对应的玩家名(获取范围为 `uuid.json` `usercache.json`)
+获取uuid对应的玩家名(获取范围为 `offline_uuid.json` 以及 `usercache.json`)
 
 ```python
 import uuid_api_remake
