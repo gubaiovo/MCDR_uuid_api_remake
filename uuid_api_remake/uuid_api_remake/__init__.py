@@ -181,7 +181,8 @@ def get_uuid_in_game(source: CommandSource, context: dict):
     source.reply(f"查询 §e{name}§r UUID...")
     uuid = get_uuid(name)
     if uuid:
-        source.reply(f"§c{name} §a->§r §b{uuid}")
+        message = RText(f"§c{name} §a->§r §b{uuid}").h("§a点击复制UUID到剪贴板").c(RAction.copy_to_clipboard, uuid)
+        source.reply(message)
     else:
         source.reply(f"§c查询失败: 无法找到玩家 §e{name}§c 的 UUID。")
         
